@@ -13,10 +13,20 @@ jobs:
       - name: Checkout the Repository
         uses: actions/checkout@v4
 
-      - name: Set Up .Net
+      - name: Set up .Net Core
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0
 
-      - name: Build with .Net
+      # 'dotnet build' implicitly calls 'dotnet restore'
+      # but it's better to have it as a separate step for debugging dependency issues
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
         run: dotnet build --configuration Release
+
+      # 'dotnet test' will discover and run all the tests in the repository
+      # '--no-build' will reuse the .dlls from step 'Build with .Net'
+      - name: Run Tests
+        run: dotnet test --configuration Release --no-build
