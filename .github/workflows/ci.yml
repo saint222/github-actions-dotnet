@@ -78,3 +78,30 @@ jobs:
           app-name: app-github-actions-demo-dev
           # this is the folder from Download artifact step
           package: artifacts/
+
+  # this job is behind a manual approve restriction from GitHub
+  deploy-qa:
+    name: CD (deploy to qa)
+    runs-on: ubuntu-latest
+    needs: deploy-dev
+    environment: qa
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: app-artifact
+          path: artifacts/
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy artifact to Azure App Service
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: app-github-actions-demo-qa
+          package: artifacts/
