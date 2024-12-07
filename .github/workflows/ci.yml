@@ -43,65 +43,31 @@ jobs:
 
   deploy-dev:
     name: CD (deploy to dev)
-    runs-on: ubuntu-latest
     # this will guarantee that 'deploy-dev' job will run AFTER 'build' job
     needs: build
     # with this secrets can be re-used using the same naming as ${{ secrets.AZURE_CLIENT_ID }}
     # but
     # - secrets should be saved as Environment secrets (not Repository ones)
     # Azure federated credentials should use 'Environment' as Entity (NOT BRANCH!!)
-    environment: dev
+    uses: ./.github/workflows/step-deploy.yml
+    with:
+      env: dev
+      resource_group_name: rg-github-actions-demo-dev
+    # this will map GitHab env secrets on each particular deployment step
+    # based on the 'env' value
+    secrets: inherit
 
-    steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v4
-        with:
-          # this will be 'app-artifact.zip'
-          name: app-artifact
-          # this folder and the one from 'Upload artifact' step - are different
-          # as jobs DO NOT SHARE file system while running
-          path: artifacts/
 
-      - name: Login to Azure
-        uses: azure/login@v2
-        with:
-          # these are values from Azure Managed Identity => Settings => Properties
-          # saved in GitHub as 'dev' Environment secrets
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-      - name: Deploy artifact to Azure App Service
-        uses: azure/webapps-deploy@v2
-        with:
-          # Azure App Service name
-          app-name: app-github-actions-demo-dev
-          # this is the folder from Download artifact step
-          package: artifacts/
 
   # this job is behind a manual approve restriction from GitHub
   deploy-qa:
     name: CD (deploy to qa)
-    runs-on: ubuntu-latest
+    # this will guarantee that 'deploy-qa' job will run AFTER 'deploy-dev' job
     needs: deploy-dev
-    environment: qa
-
-    steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: app-artifact
-          path: artifacts/
-
-      - name: Login to Azure
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-      - name: Deploy artifact to Azure App Service
-        uses: azure/webapps-deploy@v2
-        with:
-          app-name: app-github-actions-demo-qa
-          package: artifacts/
+    uses: ./.github/workflows/step-deploy.yml
+    with:
+      env: qa
+      resource_group_name: rg-github-actions-demo-qa
+    # this will map GitHab env secrets on each particular deployment step
+    # based on the 'env' value
+    secrets: inherit
