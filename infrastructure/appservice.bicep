@@ -8,15 +8,15 @@ var appServiceProperties = {
   httpsOnly: true
   siteConfig: {
     linuxFxVersion: 'DOTNETCORE|8.0'
-    alwaysOn: false
-    ftpsState: 'Disabled'
-    minTlsVersion: '1.2'
-    webSocketsEnabled: false
-    requestTracingEnabled: false
-    detailedErrorLoggingEnabled: false
-    httpLoggingEnabled: false
-    http20Enabled: false
-    // healthCheckPath: '/api/health'
+//     alwaysOn: false
+//     ftpsState: 'Disabled'
+//     minTlsVersion: '1.2'
+//     webSocketsEnabled: false
+//     requestTracingEnabled: false
+//     detailedErrorLoggingEnabled: false
+//     httpLoggingEnabled: false
+//     http20Enabled: false
+//     healthCheckPath: '/api/health'
   }
 }
 
@@ -51,22 +51,21 @@ resource appSettings 'Microsoft.Web/sites/config@2022-09-01' = {
   }
 }
 
-// this part is for 'Zero Downtime' that is available starting from S1 ServicePlan
-// resource appServiceSlot 'Microsoft.Web/sites/slots@2022-09-01' = {
-//   location: location
-//   parent: appService
-//   name: 'slot'
-//   identity: {
-//     type: 'SystemAssigned'
-//   }
-//   properties: appServiceProperties
-// }
-//
-// resource appServiceSlotSetting 'Microsoft.Web/sites/slots/config@2022-09-01' = {
-//   name: 'appsettings'
-//   kind: 'string'
-//   parent: appServiceSlot
-//   properties: {
-//     ASPNETCORE_ENVIRONMENT: environment
-//   }
-// }
+resource appServiceSlot 'Microsoft.Web/sites/slots@2022-09-01' = {
+  location: location
+  parent: appService
+  name: 'slot'
+  identity: {
+    type: 'SystemAssigned'
+  }
+  properties: appServiceProperties
+}
+
+resource appServiceSlotSetting 'Microsoft.Web/sites/slots/config@2022-09-01' = {
+  name: 'appsettings'
+  kind: 'string'
+  parent: appServiceSlot
+  properties: {
+    ASPNETCORE_ENVIRONMENT: environment
+  }
+}
