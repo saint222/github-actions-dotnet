@@ -45,8 +45,7 @@ jobs:
             path: artifacts/
 
 
-  # this job will start automatically once 'CI' job is finished (without additional
-  # approves in GitHub)
+  # this job will start automatically once 'CI' job is finished
   deploy-dev:
     name: CD (deploy to dev)
     # this will guarantee that 'deploy-dev' job will run AFTER 'build' job

@@ -46,7 +46,18 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
+      - name: Check if Azure App Service exists
+        id: check-app-service
+        run: |
+          az webapp show --name app-github-actions-demo-${{ inputs.env }} --resource-group ${{ inputs.resource_group_name }}
+        continue-on-error: true
+
+      # for 'dev' F1 (free) App Service will be created manually as
+      # F1s App Services can't be created via IaC (Azure restriction)!!!
+      # and
+      # this step will be skipped if 'qa' App Service is already created
       - name: Run IaC via Bicep (Creat Azure App Service)
+        if: inputs.env != 'dev' && steps.check-app-service.outcome != 'success'
         run: |
           az deployment group create \
             --name ${{ inputs.env }}-deployment-${{ github.run_number }} \
@@ -62,3 +73,10 @@ jobs:
           app-name: app-github-actions-demo-${{ inputs.env }}
           # this is the folder from the 'Download artifact' step
           package: artifacts/
+
+      # slots are only available for 'S1' App Services and higher
+      # so if it's 'def' the step will be skipped (we are using 'S1' for QA)
+      - name: Swap slots
+        if: inputs.env != 'dev'
+        run: |
+          az webapp deployment slot swap -g ${{ inputs.resource_group_name }} -n ${{ inputs.app_service_name }} --slot slot --target-slot production --verbose
