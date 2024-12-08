@@ -71,10 +71,13 @@ jobs:
         with:
           # Azure App Service name
           app-name: app-github-actions-demo-${{ inputs.env }}
-          # it's the name of a slot created here: App Service => Deployment slots => Add
-          slot-name: slot
           # this is the folder from the 'Download artifact' step
           package: artifacts/
+        # setting Environment Variable
+        env:
+          # 'slot' - is the name of a slot created here: App Service => Deployment slots => Add
+          SLOT_NAME: ${{ inputs.env == 'qa' && 'slot' || '' }}
+
 
       # slots are used for 'Zero Deployment Downtime' (green/blue swapping)
       # slots are only available for 'S1' App Services and higher
@@ -84,4 +87,4 @@ jobs:
       - name: Swap slots
         if: inputs.env != 'dev'
         run: |
-          az webapp deployment slot swap -g ${{ inputs.resource_group_name }} -n ${{ inputs.app_service_name }} --slot slot --target-slot production --verbose
+          az webapp deployment slot swap -g ${{ inputs.resource_group_name }} -n ${{ inputs.app_service_name }} --slot ${{ env.SLOT_NAME }} --target-slot production --verbose
