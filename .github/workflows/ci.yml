@@ -1,4 +1,4 @@
-# this will be a workflow name in GitHub
+# 'CI/CD' will be a workflow name in GitHub
 name: CI/CD
 
 on:
@@ -16,6 +16,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # pulling down the repo (code)
       - name: Checkout the Repository
         uses: actions/checkout@v4
 
@@ -37,29 +38,32 @@ jobs:
         with:
             # this will be 'app-artifact.zip'
             name: app-artifact
+            # this folder is the one used in 'Publish' step (-o artifacts)
+            # but
             # this folder and the one from 'Download artifact' step - are different
             # as jobs DO NOT SHARE file system while running
             path: artifacts/
 
+
+  # this job will start automatically once 'CI' job is finished (without additional
+  # approves in GitHub)
   deploy-dev:
     name: CD (deploy to dev)
     # this will guarantee that 'deploy-dev' job will run AFTER 'build' job
     needs: build
-    # with this secrets can be re-used using the same naming as ${{ secrets.AZURE_CLIENT_ID }}
-    # but
-    # - secrets should be saved as Environment secrets (not Repository ones)
-    # Azure federated credentials should use 'Environment' as Entity (NOT BRANCH!!)
+    # using a reusable step-deploy.yml
     uses: ./.github/workflows/step-deploy.yml
+    # passing params to step-deploy.yml
     with:
       env: dev
       resource_group_name: rg-github-actions-demo-dev
-    # this will map GitHab env secrets on each particular deployment step
-    # based on the 'env' value
+    # this will map GitHab env secrets from step-deploy.yml on each particular deployment step
+    # using 'env' values accordingly
     secrets: inherit
 
 
 
-  # this job is behind a manual approve restriction from GitHub
+  # this job is behind a manual approve restriction from GitHub (manual approve is needed)
   deploy-qa:
     name: CD (deploy to qa)
     # this will guarantee that 'deploy-qa' job will run AFTER 'deploy-dev' job
