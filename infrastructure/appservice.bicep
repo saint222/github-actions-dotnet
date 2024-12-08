@@ -11,12 +11,12 @@ var appServiceProperties = {
     linuxFxVersion: 'DOTNETCORE|8.0'
     ftpsState: 'Disabled'
     minTlsVersion: '1.2'
-    http20Enabled: false
-    alwaysOn: false
-    webSocketsEnabled: false
-    requestTracingEnabled: false
-    detailedErrorLoggingEnabled: false
-    httpLoggingEnabled: false
+    http20Enabled: environment == 'qa'
+    alwaysOn: environment == 'qa'
+    webSocketsEnabled: environment == 'qa'
+    requestTracingEnabled: environment == 'qa'
+    detailedErrorLoggingEnabled: environment == 'qa'
+    httpLoggingEnabled: environment == 'qa'
     healthCheckPath: '/api/health'
   }
 }
@@ -30,7 +30,7 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2022-09-01' = {
   }
   kind: 'linux'
   properties: {
-    reserved: false
+    reserved: environment == 'qa'
   }
 }
 
