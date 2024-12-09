@@ -1,12 +1,17 @@
+# 'PR Verify' will be a workflow name in GitHub
 name: PR Verify
 
+# workflow trigger
 on:
   pull_request:
     branches: ["main"]
 
+# all jobs in one workflow run in parallel by default
+# but
+# if wee need job 'B' runs after successful job 'A' => add needs: A to job B
 jobs:
   build:
-    name: PR Verify Job
+    name: PR Verify
     runs-on: ubuntu-latest
 
     steps:

@@ -1,6 +1,7 @@
 # 'CI/CD' will be a workflow name in GitHub
 name: CI/CD
 
+# workflow trigger
 on:
   push:
     branches: ["main"]
@@ -10,6 +11,10 @@ permissions:
   id-token: write
   contents: read
 
+
+# all jobs in one workflow run in parallel by default
+# but
+# if wee need job 'B' runs after successful job 'A' => add needs: A to job B
 jobs:
   build:
     name: CI
@@ -25,6 +30,7 @@ jobs:
         with:
           dotnet-version: 8.0
 
+      # 'dotnet test' will discover and run all the tests in the repository
       # 'dotnet test' will implicitly trigger 'dotnet build' with the same configuration
       # --configuration Release
       - name: Build and Run Tests
@@ -45,7 +51,7 @@ jobs:
             path: artifacts/
 
 
-  # this job will start automatically once 'CI' job is finished
+  # this job will start automatically once 'CI' job is finished (needs: build)
   deploy-dev:
     name: CD (deploy to dev)
     # this will guarantee that 'deploy-dev' job will run AFTER 'build' job

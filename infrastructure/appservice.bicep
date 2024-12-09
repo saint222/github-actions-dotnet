@@ -1,7 +1,12 @@
 param appName string
+param location string
+
+// only 'dev' and 'qa' values are allowed as 'environment' values
 @allowed(['dev', 'qa'])
 param environment string
-param location string
+
+// Azure App Service will be 'F1' if environment is 'dev', otherwise - 'S1'
+// 'S1' is the lowest onw where slots are allowed (available)
 var skuName = (environment == 'dev') ? 'F1' : 'S1'
 
 var appServiceProperties = {
@@ -21,7 +26,7 @@ var appServiceProperties = {
   }
 }
 
-
+// reserved: true - only if environment is 'qa'
 resource appServicePlan 'Microsoft.Web/serverfarms@2022-09-01' = {
   name: 'asp-${appName}-${environment}'
   location: location

@@ -1,5 +1,8 @@
-name: "Step - Deploy"
+# 'Step - Deploy' will be a workflow name in GitHub
+name: Step - Deploy
 
+# 'workflow_call' trigger is used in GitHub Actions to enable
+# one workflow to be called from another workflow (reusable parts)
 on:
   workflow_call:
     inputs:
@@ -17,6 +20,9 @@ on:
       AZURE_SUBSCRIPTION_ID:
         required: true
 
+# all jobs in one workflow run in parallel by default
+# but
+# if wee need job 'B' runs after successful job 'A' => add needs: A to job B
 jobs:
   deploy:
     name: CD (deploy to ${{ inputs.env }})
