@@ -1,0 +1,41 @@
+# 'Resource Group Delete' will be a workflow name in GitHub
+name: Resource Group Delete
+
+# 'workflow_dispatch' - manual trigger
+on:
+  workflow_dispatch:
+    # will need to pass a parameter (resource_group_name) from GitHub
+    inputs:
+      resource_group_name:
+        description: 'The name of the resource group to delete'
+        required: true
+        type: string
+
+
+# this is for 'Login to Azure' step
+permissions:
+  id-token: write
+  contents: read
+
+
+# all jobs in one workflow run in parallel by default
+# but
+# if wee need job 'B' runs after successful job 'A' => add needs: A to job B
+jobs:
+  delete-resources:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          # these are values from Azure Managed Identity => Settings => Properties
+          # saved in GitHub as 'dev'/'qa' Environment secrets
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Delete all resources and the group
+        run: |
+          RESOURCE_GROUP=${{ inputs.resource_group_name }}
+          az group delete --name $RESOURCE_GROUP --yes --no-wait
