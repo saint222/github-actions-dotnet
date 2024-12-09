@@ -10,6 +10,10 @@ on:
         description: 'The name of the resource group to delete'
         required: true
         type: string
+      env:
+        description: 'The name of the environment'
+        required: true
+        type: string
 
 
 # this is for 'Login to Azure' step
@@ -24,6 +28,7 @@ permissions:
 jobs:
   delete-resources:
     runs-on: ubuntu-latest
+    environment: ${{ inputs.env }}
 
     steps:
       - name: Login to Azure
