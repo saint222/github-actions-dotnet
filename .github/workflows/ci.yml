@@ -1,7 +1,7 @@
 # 'CI/CD' will be a workflow name in GitHub
 name: CI/CD
 
-# workflow trigger
+# workflow trigger (push to 'main')
 on:
   push:
     branches: ["main"]
