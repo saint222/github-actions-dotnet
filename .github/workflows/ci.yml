@@ -1,10 +1,11 @@
 # 'CI/CD' will be a workflow name in GitHub
 name: CI/CD
 
-# workflow trigger (push to 'main')
+# workflow trigger (a new GitHub branch that starts from "release*" is created)
 on:
-  push:
-    branches: ["main"]
+  create:
+    branches:
+      - "release*"
 
 # this is for 'Login to Azure' step
 permissions:

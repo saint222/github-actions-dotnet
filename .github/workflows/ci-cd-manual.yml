@@ -1,0 +1,96 @@
+# CI/CD (manual) will be a workflow name in GitHub
+name: CI/CD (manual)
+
+on:
+  # workflow_dispatch - manual trigger
+  workflow_dispatch:
+    inputs:
+      branch:
+        required: true
+        default: 'main'
+        type: string
+        description: 'The branch to checkout'
+      env:
+        required: true
+        type: string
+        default: 'dev'
+        description: 'CD target env'
+
+# this is for 'Login to Azure' step
+permissions:
+  id-token: write
+  contents: read
+
+# all jobs in one workflow run in parallel by default
+# but
+# if wee need job 'B' runs after successful job 'A' => add needs: A to job B
+jobs:
+  build:
+    name: CI
+    runs-on: ubuntu-latest
+
+    steps:
+      # pulling down the repo (specific branch)
+      - name: Checkout ${{ inputs.branch }}
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
+
+      - name: Set up .Net
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0
+
+      # 'dotnet test' will discover and run all the tests in the repository
+      # 'dotnet test' will implicitly trigger 'dotnet build' with the same configuration
+      # --configuration Release
+      - name: Build and run tests
+        run: dotnet test --configuration Release
+
+      - name: Publish
+        run: dotnet publish GitHubActionsDotNet.Api/GitHubActionsDotNet.Api.csproj --configuration Release -o artifacts
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          # this will be 'app-artifact.zip'
+          name: app-artifact
+          # this folder is the one used in 'Publish' step (-o artifacts)
+          # but
+          # this folder and the one from 'Download artifact' step - are different
+          # as jobs DO NOT SHARE file system while running
+          path: artifacts/
+
+
+  # 'deploy' job will start automatically once 'CI' job is finished (needs: build)
+  deploy:
+    name: CD (deploy to ${{ inputs.env }})
+    # this will guarantee that 'deploy' job will run AFTER 'build' job
+    needs: build
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.env }}
+
+    steps:
+      # as we don't deploy infrastructure - start from 'actions/download-artifact@v4'
+      # and not from 'actions/checkout@v4'
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          # this will be 'app-artifact.zip'
+          name: app-artifact
+          # this folder and the one from 'Upload artifact' step - are different
+          # as jobs DO NOT SHARE file system while running
+          path: artifacts/
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy artifact to Azure App Service
+        uses: azure/webapps-deploy@v2
+        with:
+          # Azure App Service name
+          app-name: app-github-actions-demo-${{ inputs.env }}
+          # this is the folder from the 'Download artifact' step
+          package: artifacts/
