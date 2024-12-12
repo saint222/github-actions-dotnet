@@ -10,10 +10,6 @@ on:
         description: 'The name of the resource group to delete'
         required: true
         type: string
-      env:
-        description: 'The name of the environment'
-        required: true
-        type: string
 
 
 # this is for 'Login to Azure' step
@@ -28,17 +24,18 @@ permissions:
 jobs:
   delete-resources:
     runs-on: ubuntu-latest
-    environment: ${{ inputs.env }}
 
     steps:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          # these are values from Azure Managed Identity => Settings => Properties
-          # saved in GitHub as 'dev'/'qa' Environment secrets
+          # these are repository-level Azure Service Principal secrets
+          # generated for the whole subscription
+          # Settings => Secrets and variables => Actions
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
 
       - name: Delete all resources and the group
         run: |
